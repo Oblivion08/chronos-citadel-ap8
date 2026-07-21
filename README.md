@@ -6,7 +6,10 @@ Isang mobile-friendly learning adventure para sa Araling Panlipunan 8, Unang Ter
 
 - Sampung weekly realms mula Heograpiya hanggang Asian Exploration
 - Comic-based lesson viewer
-- Sequencing challenge at 5-item boss quiz bawat linggo
+- Iba-ibang mini-game: sequencing, matching, word scramble, at Fact o Bluff
+- 5-item boss quiz bawat linggo
+- Section dropdown para sa 8-ABRAHAM, 8-ISAAC, 8-MOSES, 8-EZEKIEL, 8-ISAIAH, at 9-JEREMIAH
+- Background music, Chronos intro, correct/wrong feedback, unlock, at victory sounds
 - Sequential unlocking ng mga linggo
 - Stars, coins, rank, score, at continue-game progress
 - Local device auto-save kapag wala pang Firebase configuration
