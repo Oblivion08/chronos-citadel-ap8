@@ -26,20 +26,51 @@ function readLocal(): SavedProgress {
 }
 
 const soundFiles = { chronos: '/sounds/chronos.mp3', adventure: '/sounds/adventure.mp3', correct: '/sounds/correct.mp3', wrong: '/sounds/wrong.mp3', unlock: '/sounds/unlock.mp3', victory: '/sounds/victory.mp3' }
+type MusicKind = 'chronos' | 'adventure'
+type EffectKind = 'correct' | 'wrong' | 'unlock' | 'victory'
 let backgroundMusic: HTMLAudioElement | null = null
-function playSound(kind: keyof typeof soundFiles, volume = 0.55) {
+let backgroundKind: MusicKind | null = null
+const effects: Partial<Record<EffectKind, HTMLAudioElement>> = {}
+
+function stopBackgroundMusic() {
+  if (!backgroundMusic) return
+  backgroundMusic.pause()
+  backgroundMusic.currentTime = 0
+  backgroundMusic = null
+  backgroundKind = null
+}
+
+function startBackgroundMusic(kind: MusicKind) {
   try {
-    const sound = new Audio(soundFiles[kind])
-    sound.volume = volume
-    void sound.play()
+    if (backgroundKind !== kind) {
+      stopBackgroundMusic()
+      backgroundMusic = new Audio(soundFiles[kind])
+      backgroundMusic.loop = true
+      backgroundKind = kind
+    }
+    if (!backgroundMusic) return
+    backgroundMusic.volume = 0.14
+    void backgroundMusic.play().catch(() => undefined)
   } catch { /* sound is optional */ }
 }
 
-function startBackgroundMusic() {
-  backgroundMusic ??= new Audio(soundFiles.adventure)
-  backgroundMusic.loop = true
-  backgroundMusic.volume = 0.18
-  void backgroundMusic.play()
+function playSound(kind: EffectKind, volume = 0.9) {
+  try {
+    const sound = effects[kind] ?? new Audio(soundFiles[kind])
+    effects[kind] = sound
+    sound.pause()
+    sound.currentTime = 0
+    sound.volume = volume
+
+    const music = backgroundMusic
+    if (music) music.volume = 0.035
+    const restoreMusic = () => {
+      if (music && music === backgroundMusic) music.volume = 0.14
+    }
+    sound.onended = restoreMusic
+    sound.onerror = restoreMusic
+    void sound.play().catch(restoreMusic)
+  } catch { /* sound is optional */ }
 }
 
 export default function App() {
@@ -101,16 +132,18 @@ export default function App() {
   const go = (next: Screen) => setScreen(next)
 
   useEffect(() => {
-    if (!backgroundMusic) return
-    if (muted) backgroundMusic.pause()
-    else void backgroundMusic.play()
-  }, [muted])
+    if (muted || screen === 'gate') {
+      stopBackgroundMusic()
+      return
+    }
+    startBackgroundMusic(screen === 'map' ? 'chronos' : 'adventure')
+  }, [muted, screen])
 
   function enterGame(e: React.FormEvent) {
     e.preventDefault()
     if (!player.trim() || !section) return
     setProgress(p => ({ ...p, player: player.trim(), section }))
-    if (!muted) { playSound('chronos', 0.45); startBackgroundMusic() }
+    if (!muted) startBackgroundMusic('chronos')
     go('map')
   }
 
@@ -333,3 +366,4 @@ function Result({ level, score, complete, onMap, retry }: { level: Level; score:
     <div className="result-actions"><button onClick={retry}>Subukan Muli</button><button className="primary" onClick={onMap}>Bumalik sa Mapa</button></div>
   </section></div>
 }
+
